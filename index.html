@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Звезда судьбы</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      width: 200px;
+    }
+    svg {
+      margin-top: 20px;
+    }
+    .center-text {
+      font-size: 18px;
+      fill: purple;
+      font-weight: bold;
+    }
+    .label-text {
+      font-size: 12px;
+      font-weight: bold;
+      text-anchor: middle;
+    }
+  </style>
+</head>
+<body>
+  <h2>Звезда судьбы</h2>
+  <input type="text" id="birthDate" placeholder="дд.мм.гггг" />
+  <button onclick="generateStar()">Построить</button>
+
+  <svg id="starSvg" width="400" height="400" viewBox="-200 -200 400 400"></svg>
+
+  <script>
+    Telegram.WebApp.ready();
+
+    function reduceTo22(n) {
+      while (n > 22) {
+        n = n.toString().split('').reduce((a, b) => a + Number(b), 0);
+      }
+      return n;
+    }
+
+    function generateStar() {
+      const input = document.getElementById("birthDate").value.trim();
+      const [d, m, y] = input.split('.').map(Number);
+      if (!d || !m || !y) return alert("Введите дату в формате дд.мм.гггг");
+
+      const val1 = d;
+      const val3 = m;
+      const val5 = reduceTo22(y);
+      const val7 = val1 + val3 + val5;
+      const val9 = val1 + val3 + val5 + val7;
+      const val2 = val1 + val3;
+      const val4 = val3 + val5;
+      const val6 = val5 + val7;
+      const val8 = val1 + val7;
+
+      const values = [val1, val2, val3, val4, val5, val6, val7, val8];
+      const labels = ["Навь", "Род", "Славь", "Лада", "Явь", "Перун", "Правь", "Мара"];
+      const svg = document.getElementById("starSvg");
+      svg.innerHTML = "";
+
+      const radius = 120;
+
+      for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+        svg.innerHTML += `<line x1="0" y1="0" x2="${x}" y2="${y}" stroke="orange" />`;
+        svg.innerHTML += `<text x="${x * 1.2}" y="${y * 1.2}" class="label-text">${labels[i]}: ${values[i]}</text>`;
+      }
+
+      svg.innerHTML += `<text x="0" y="0" class="center-text">${val9}</text>`;
+
+      // Можно отправить значения обратно в бота:
+      Telegram.WebApp.sendData(JSON.stringify({
+        birth_date: input,
+        result: {
+          center: val9,
+          ends: values,
+          labels: labels
+        }
+      }));
+    }
+  </script>
+</body>
+</html>
